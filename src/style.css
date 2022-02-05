@@ -2,3 +2,7 @@
   color: red;
   background: url('./icon.png');
 }
+
+.canvas{
+	border: 1px solid black;
+}
