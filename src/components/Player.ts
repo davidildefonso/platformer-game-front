@@ -60,13 +60,13 @@ export class Player{
 	}
 
 	draw(gameFrame : number){
-
+		
 		this.position  = Math.floor(gameFrame/this.staggerFrames) % this.spriteAnimations[this.playerState].loc.length;
 		
 		this.frameX = this.spriteWidth * this.position;		
 		this.frameY = this.spriteAnimations[this.playerState].loc[this.position].y;
 
-
+		
 
 		this.ctx.drawImage(
 			this.image,

@@ -5,6 +5,10 @@ import { InputHandler } from './components/InputHandler';
 import { Player } from './components/Player';
 import {Background} from './components/Background';
 import { Enemy } from './components/Enemy';
+import enemies from './common/enemies';
+import {SpriteAnimations} from './common/types'
+import {Frames} from './common/types'
+
 
 window.onload = () => {
 	const canvas = document.createElement("canvas");
@@ -22,21 +26,7 @@ window.onload = () => {
 	let gameFrame = 0;
 	const staggerFrames = 5;
 
-	interface SpriteAnimations{
-		[name : string]: Frames;
-	}
-
-
 	const spriteAnimations: SpriteAnimations = {};
-
-	interface Frames{
-		loc: Array<Position>
-	}
-
-	interface Position{
-		x: number
-		y: number
-	}
 
 	animationStates.forEach((state, index) => {
 		const frames : Frames = {
@@ -51,34 +41,57 @@ window.onload = () => {
 		spriteAnimations[state.name] = frames;
 	});
 
-	const background = new Background(ctx);
 
+	let enemiesList : Enemy[] = [];
+
+	const handleEnemies = (deltaTime: number) => {
+		if(enemyTimer >= enemyInterval + randomEnemyInterval ){			
+			enemiesList.push(getRandomEnemy());
+			randomEnemyInterval = Math.random() * 10000 + 50;
+			enemyTimer = 0;
+		}else{			
+			enemyTimer += deltaTime;			
+		}	
+
+		enemiesList.forEach(e => {
+			e.draw(gameFrame);
+			e.update();
+		})
+	};
+
+	const getRandomEnemy = () => {
+		const selected = enemies[Math.floor(Math.random() * enemies.length)];
+		return new Enemy(CANVAS_WIDTH, CANVAS_HEIGHT, ctx, staggerFrames, selected.width, selected.height, selected.name);
+	};
+
+	const background = new Background(ctx);
 	const input = new InputHandler();
 
-
 	const player = new Player(CANVAS_WIDTH, CANVAS_HEIGHT, playerImage, ctx,
-		spriteAnimations, gameFrame, staggerFrames);	
+		spriteAnimations, gameFrame, staggerFrames);
 
 
-	const enemy = new Enemy(CANVAS_WIDTH, CANVAS_HEIGHT, ctx);
+	let lastTime = 0;
+	let enemyTimer = 0;
+	let enemyInterval = 10000;
+	let randomEnemyInterval =  Math.random() * 3000 + 50;
 
-	const animate = () => {
+	const animate = (timeStamp: number) => {
+
+		const deltaTime = timeStamp - lastTime;
+		lastTime = timeStamp;
+
 		ctx?.clearRect(0,0,CANVAS_WIDTH, CANVAS_HEIGHT);
-
 		background.drawAndUpdate();		
 		
 		player.draw(gameFrame);
-		player.update(input);	
+		player.update(input);			
 
-		enemy.draw();
-
+		handleEnemies(deltaTime);
 		gameFrame++;
-
 		requestAnimationFrame(animate);
 	};
 
-	animate();
-
+	animate(0);
 	document.body.appendChild(canvas);
-
 };
