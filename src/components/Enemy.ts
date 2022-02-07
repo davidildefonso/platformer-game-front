@@ -16,9 +16,11 @@ export class Enemy{
 	public frameX: number;
 	public position: number;
 	public staggerFrames: number;
+	public markedForDeletion: boolean;
+	public speed: number;
 
 	constructor( gameWidth: number, gameHeight: number , ctx: CanvasRenderingContext2D, staggerFrames: number,
-		width: number, height: number, name: string
+		width: number, height: number, name: string, speed: number
 	){
 
 		
@@ -33,6 +35,10 @@ export class Enemy{
 		this.ctx = ctx;
 		this.frameX = 0;
 		this.staggerFrames = staggerFrames;
+		this.markedForDeletion = false;
+		this.speed = speed;
+
+		
 	}
 
 	getImage(name: string){
@@ -61,6 +67,12 @@ export class Enemy{
 
 
 	draw(gameFrame: number){
+
+		this.ctx.strokeStyle = "white";
+		this.ctx.strokeRect(this.x, this.y, this.width, this.height);
+		this.ctx.beginPath();
+		this.ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+		this.ctx.stroke();
 		
 		this.position  = Math.floor(gameFrame/10) % 6;		
 		this.frameX = this.width * this.position;
@@ -70,7 +82,8 @@ export class Enemy{
 	}
 
 	update(){
-		this.x--;
+		this.x -= this.speed ;
+		if(this.x < - this.width) this.markedForDeletion = true;
 	}
 
 }

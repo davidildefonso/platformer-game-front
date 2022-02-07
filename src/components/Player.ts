@@ -1,3 +1,4 @@
+import { Enemy } from "./Enemy";
 import { InputHandler } from "./InputHandler";
 
 interface SpriteAnimations{
@@ -35,6 +36,7 @@ export class Player{
 	public staggerFrames: number;
 	public playerState : string;
 	public spriteAnimations: SpriteAnimations ;
+	public state: string;
 
 	constructor(gameWidth: number, gameHeight: number, image: HTMLImageElement, ctx: CanvasRenderingContext2D,
 		spriteAnimations: SpriteAnimations, gameFrame: number, staggerFrames: number){
@@ -60,6 +62,12 @@ export class Player{
 	}
 
 	draw(gameFrame : number){
+
+		this.ctx.strokeStyle = "white";
+		this.ctx.strokeRect(this.x, this.y, this.width, this.height);
+		this.ctx.beginPath();
+		this.ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+		this.ctx.stroke();
 		
 		this.position  = Math.floor(gameFrame/this.staggerFrames) % this.spriteAnimations[this.playerState].loc.length;
 		
@@ -76,7 +84,7 @@ export class Player{
 
 	}
 
-	update(input : InputHandler){
+	update(input : InputHandler, enemies: Enemy[]){
 		
 		if(input.keys.indexOf("ArrowRight") > -1 ){
 			this.playerState = "run";
@@ -109,9 +117,27 @@ export class Player{
 		}
 
 		if(this.y > this.gameHeight - this.height) this.y = this.gameHeight - this.height;
+
+
+		enemies.forEach(enemy => {
+			const dx = enemy.x - this.x;
+			const dy = enemy.y - this.y;
+			const distance = Math.sqrt(dx * dx + dy * dy);
+			const offset = Math.abs(enemy.width - enemy.height) / 2 ;
+			const factor = offset < 50 ? 0.80 : 0.95;
+			if(distance < (enemy.width / 2  + this.width / 2 - offset) * factor ){				
+				this.playerState = "ko";				
+			}
+		});
+
 	}
 
 	onGround(){
 		return this.y >= this.gameHeight - this.height;
 	}
+
+	isDead(){		
+		return this.playerState === "ko";
+	}
+
 }

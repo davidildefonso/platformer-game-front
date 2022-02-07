@@ -26,6 +26,10 @@ window.onload = () => {
 	let gameFrame = 0;
 	const staggerFrames = 5;
 
+	let score = 0;
+
+	let gameOver = false;
+
 	const spriteAnimations: SpriteAnimations = {};
 
 	animationStates.forEach((state, index) => {
@@ -44,10 +48,17 @@ window.onload = () => {
 
 	let enemiesList : Enemy[] = [];
 
+	const displayStatusText = (ctx :  CanvasRenderingContext2D) => {
+		ctx.fillStyle = "black";
+		ctx.font = "40px Helvetica";
+		ctx.fillText(`Score ${score}`, 20, 50);
+	};
+
 	const handleEnemies = (deltaTime: number) => {
 		if(enemyTimer >= enemyInterval + randomEnemyInterval ){			
 			enemiesList.push(getRandomEnemy());
-			randomEnemyInterval = Math.random() * 10000 + 50;
+			console.log(enemiesList)
+			randomEnemyInterval = Math.random() * 5000 + 50;
 			enemyTimer = 0;
 		}else{			
 			enemyTimer += deltaTime;			
@@ -57,11 +68,14 @@ window.onload = () => {
 			e.draw(gameFrame);
 			e.update();
 		})
+
+		enemiesList = enemiesList.filter(e => !e.markedForDeletion);
+		
 	};
 
 	const getRandomEnemy = () => {
 		const selected = enemies[Math.floor(Math.random() * enemies.length)];
-		return new Enemy(CANVAS_WIDTH, CANVAS_HEIGHT, ctx, staggerFrames, selected.width, selected.height, selected.name);
+		return new Enemy(CANVAS_WIDTH, CANVAS_HEIGHT, ctx, staggerFrames, selected.width, selected.height, selected.name, selected.speed);
 	};
 
 	const background = new Background(ctx);
@@ -85,11 +99,15 @@ window.onload = () => {
 		background.drawAndUpdate();		
 		
 		player.draw(gameFrame);
-		player.update(input);			
+		player.update(input, enemiesList);			
 
 		handleEnemies(deltaTime);
+
+		displayStatusText(ctx);
+
 		gameFrame++;
-		requestAnimationFrame(animate);
+		if(!player.isDead()) requestAnimationFrame(animate);
+
 	};
 
 	animate(0);
